@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Focus Better, Together.</h1>
+        <p>A distraction-free virtual study room platform for students to collaborate, track progress, and stay motivated.</p>
+        <div class="hero-btns">
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary btn-lg">Get Started</a>
+            <a href="{{ url_for('auth.login') }}" class="btn-secondary btn-lg">Sign In</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <!-- Minimal graphic placeholder -->
+        <div class="abstract-shape"></div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="section-title">
+        <h2>Why StudySync?</h2>
+        <p>Everything you need for a productive group study session.</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🏠</div>
+            <h3>Virtual Rooms</h3>
+            <p>Create private or public rooms for specific subjects or exam prep.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⏱️</div>
+            <h3>Study Timers</h3>
+            <p>Track your session duration and build a consistent study habit.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Real-time Chat</h3>
+            <p>Communicate with your peers instantly without leaving the platform.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Activity Logs</h3>
+            <p>Monitor room activity and see who's studying in real time.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

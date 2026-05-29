@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}{{ room.name }}{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="room-layout">
+    <div class="room-main">
+        <div class="room-header">
+            <div class="room-info">
+                <span class="subject-badge">{{ room.subject }}</span>
+                <h1>{{ room.name }}</h1>
+                <p class="room-desc">{{ room.description }}</p>
+            </div>
+            <div class="room-actions">
+                <div class="invite-box">
+                    <span class="label">Invite Code:</span>
+                    <code id="inviteCode">{{ room.invite_code }}</code>
+                    <button onclick="copyInvite()" class="btn-icon" title="Copy">📋</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="study-timer-card {% if active_session %}active{% endif %}">
+            <div class="timer-display">
+                <span id="timer">00:00:00</span>
+            </div>
+            <div class="timer-controls">
+                {% if not active_session %}
+                    <form action="{{ url_for('room.start_session', room_id=room.id) }}" method="POST">
+                        <button type="submit" class="btn-primary btn-lg">Start Study Session</button>
+                    </form>
+                {% else %}
+                    <form action="{{ url_for('room.end_session', room_id=room.id) }}" method="POST">
+                        <button type="submit" class="btn-danger btn-lg">End Session</button>
+                    </form>
+                    <p class="timer-status">Session started by {{ active_session.user.name }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3>Room Chat</h3>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                {% for msg in messages %}
+                    <div class="message {% if msg.user_id == current_user.id %}own{% endif %}">
+                        <div class="message-meta">
+                            <span class="sender">{{ msg.user.name }}</span>
+                            <span class="time">{{ msg.created_at.strftime('%H:%M') }}</span>
+                        </div>
+                        <div class="message-text">{{ msg.message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+                <button id="sendBtn" class="btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="room-sidebar">
+        <div class="sidebar-section">
+            <h3>Participants ({{ members|length }})</h3>
+            <ul class="participant-list">
+                {% for member in members %}
+                    <li>
+                        <span class="user-avatar">{{ member.user.name[0] }}</span>
+                        <span class="user-name">{{ member.user.name }}</span>
+                        {% if member.role == 'admin' %}<span class="badge">Admin</span>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Activity History</h3>
+            <div class="history-list">
+                {% for log in history %}
+                    <div class="history-item">
+                        <span class="time">{{ log.created_at.strftime('%H:%M') }}</span>
+                        <p>{{ log.details }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const roomId = "{{ room.id }}";
+    const socket = io();
+
+    // Join socket room
+    socket.emit('join', { room_id: roomId });
+
+    // Chat functionality
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    scrollToBottom();
+
+    function sendMessage() {
+        const text = messageInput.value.trim();
+        if (text) {
+            socket.emit('send_message', { room_id: roomId, message: text });
+            messageInput.value = '';
+        }
+    }
+
+    sendBtn.onclick = sendMessage;
+    messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+
+    socket.on('new_message', (data) => {
+        const isOwn = data.user === "{{ current_user.name }}";
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${isOwn ? 'own' : ''}`;
+        msgDiv.innerHTML = `
+            <div class="message-meta">
+                <span class="sender">${data.user}</span>
+                <span class="time">${data.timestamp}</span>
+            </div>
+            <div class="message-text">${data.message}</div>
+        `;
+        chatMessages.appendChild(msgDiv);
+        scrollToBottom();
+    });
+
+    socket.on('status', (data) => {
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'status-msg';
+        statusDiv.innerText = data.msg;
+        chatMessages.appendChild(statusDiv);
+        scrollToBottom();
+    });
+
+    // Timer functionality
+    {% if active_session %}
+        const startTime = new Date("{{ active_session.start_time.isoformat() }}Z").getTime();
+        const timerElement = document.getElementById('timer');
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const diff = now - startTime;
+            
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            timerElement.innerText = 
+                (h < 10 ? "0" + h : h) + ":" + 
+                (m < 10 ? "0" + m : m) + ":" + 
+                (s < 10 ? "0" + s : s);
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    {% endif %}
+
+    function copyInvite() {
+        const code = document.getElementById('inviteCode').innerText;
+        navigator.clipboard.writeText(code);
+        alert('Invite code copied to clipboard!');
+    }
+</script>
+{% endblock %}

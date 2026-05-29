@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Welcome back, {{ current_user.name }}!</h1>
+    <div class="header-actions">
+        <a href="{{ url_for('room.join') }}" class="btn-secondary">Join Room</a>
+        <a href="{{ url_for('room.create') }}" class="btn-primary">Create New Room</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-label">Total Sessions</span>
+        <span class="stat-value">{{ total_sessions }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Total Study Time</span>
+        <span class="stat-value">{{ total_time }} mins</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Rooms Joined</span>
+        <span class="stat-value">{{ joined_rooms|length }}</span>
+    </div>
+</div>
+
+<div class="dashboard-main">
+    <div class="rooms-section">
+        <h2>Your Study Rooms</h2>
+        {% if joined_rooms %}
+            <div class="rooms-grid">
+                {% for room in joined_rooms %}
+                    <div class="room-card">
+                        <div class="room-tag">{{ room.subject }}</div>
+                        <h3>{{ room.name }}</h3>
+                        <p>{{ room.description[:100] }}{% if room.description|length > 100 %}...{% endif %}</p>
+                        <div class="room-meta">
+                            <span>🔑 {{ room.invite_code }}</span>
+                            <span>👥 {{ room.members|length }} members</span>
+                        </div>
+                        <a href="{{ url_for('room.detail', room_id=room.id) }}" class="btn-outline btn-block">Enter Room</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>You haven't joined any rooms yet.</p>
+                <a href="{{ url_for('room.join') }}" class="btn-link">Join a room with a code</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="activity-section">
+        <h2>Recent Activity</h2>
+        <div class="activity-list">
+            {% if recent_activities %}
+                {% for log in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            {% if log.activity_type == 'room_created' %}🏗️
+                            {% elif log.activity_type == 'user_joined' %}👋
+                            {% elif log.activity_type == 'session_started' %}🚀
+                            {% elif log.activity_type == 'session_ended' %}🏁
+                            {% else %}📝{% endif %}
+                        </div>
+                        <div class="activity-content">
+                            <p>{{ log.details }}</p>
+                            <span class="activity-time">{{ log.created_at.strftime('%b %d, %H:%M') }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No recent activity.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

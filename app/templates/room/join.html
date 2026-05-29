@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Join Room{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <h2>Join a Study Room</h2>
+        <p>Enter an invite code to join a private or public room.</p>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="invite_code">Invite Code</label>
+                <input type="text" name="invite_code" id="invite_code" required placeholder="Enter 8-character code" maxlength="8">
+            </div>
+            <div class="form-actions">
+                <a href="{{ url_for('main.dashboard') }}" class="btn-text">Cancel</a>
+                <button type="submit" class="btn-primary">Join Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

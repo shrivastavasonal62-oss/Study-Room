@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Create Room{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <h2>Create a New Study Room</h2>
+        <p>Set up a space for focused collaboration.</p>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Room Name</label>
+                <input type="text" name="name" id="name" required placeholder="e.g., Finals Prep - Computer Science">
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" name="subject" id="subject" required placeholder="e.g., Algorithms, History, Math">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" rows="3" placeholder="What is this room for?"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="visibility">Visibility</label>
+                <select name="visibility" id="visibility">
+                    <option value="public">Public (Anyone can join)</option>
+                    <option value="private">Private (Invite code required)</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <a href="{{ url_for('main.dashboard') }}" class="btn-text">Cancel</a>
+                <button type="submit" class="btn-primary">Create Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
